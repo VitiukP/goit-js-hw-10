@@ -1,0 +1,22 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.breed-select {
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+.loader,
+.error {
+  display: none;
+}
+
+.cat-info {
+  text-align: center;
+}
+
+.cat-info img {
+  max-width: 300px;
+  margin-bottom: 10px;
+}

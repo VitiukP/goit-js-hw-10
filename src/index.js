@@ -1,45 +1,66 @@
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import { Report } from 'notiflix/build/notiflix-report-aio';
+import Notiflix from 'notiflix';
 import SlimSelect from 'slim-select';
-import { fetchBreeds, fetchCatByBreed } from './js/cat-api';
-import { createMarkup, createMarkupCat } from './js/template/createMarkup';
-import refs from './js/refs';
+import { fetchBreeds, fetchCatByBreed } from './cat-api';
 
-refs.selectEl.addEventListener('change', onValueId);
-fetchBreeds()
-  .then(arr => {
-    load();
 
-    return (refs.selectEl.innerHTML = createMarkup(arr.data));
-  })
-  .then(() => slim())
-  .catch(fetchError);
 
-function onValueId(e) {
-  const id = e.target.value;
-  fetchCatByBreed(id)
-    .then(obj => {
-      load();
+const breedSelect = document.querySelector('.breed-select');
+const loader = document.querySelector('.loader');
+const error = document.querySelector('.error');
+const catInfo = document.querySelector('.cat-info');
 
-      return (refs.catInfoEl.innerHTML = createMarkupCat(obj.data));
-    })
-    .then(() => success())
-    .catch(fetchError);
-}
-function fetchError() {
-  //   refs.error.hidden = false;
-  Report.failure(refs.error.textContent, '');
-}
-function success() {
-  Notify.success('Search was successful!)', '');
-}
-function load() {
-  refs.selectEl.hidden = false;
-  refs.loaderEl.classList.remove('loader');
+async function populateBreedsSelect() {
+  try {
+    const breeds = await fetchBreeds();
+    breedSelect.innerHTML = breeds.map(breed => `<option value="${breed.id}">${breed.name}</option>`).join('');
+    breedSelect.removeAttribute('hidden');
+    new SlimSelect({
+      select: '.breed-select',
+      showContent: "down",
+    });
+    loader.setAttribute('hidden', '');
+  } catch (error) {
+    loader.setAttribute('hidden', '');
+    showError(error.message);
+  }
 }
 
-function slim() {
-  new SlimSelect({
-    select: refs.selectEl,
-  });
+function showError(errorMessage) {
+  error.textContent = errorMessage;
+  error.removeAttribute('hidden');
 }
+
+function hideError() {
+  error.setAttribute('hidden', '');
+}
+
+async function displayCatInfo(breedId) {
+  try {
+    const catData = await fetchCatByBreed(breedId);
+    const { url, breeds } = catData;
+    const breedName = breeds[0].name;
+    const description = breeds[0].description;
+    const temperament = breeds[0].temperament;
+
+    catInfo.innerHTML = `
+      <img src="${url}" alt="${breedName}">
+      <h2>${breedName}</h2>
+      <p><strong>Description:</strong> ${description}</p>
+      <p><strong>Temperament:</strong> ${temperament}</p>
+    `;
+    catInfo.removeAttribute('hidden');
+
+    Notiflix.Notify.success(`Information about ${breedName} found!`);
+  } 
+  catch (error) {
+    showError(error.message);
+  }
+}
+
+breedSelect.addEventListener('change', (event) => {
+  const selectedBreedId = event.target.value;
+  catInfo.setAttribute('hidden', '');
+  displayCatInfo(selectedBreedId);
+});
+
+populateBreedsSelect();
