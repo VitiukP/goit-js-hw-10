@@ -11,6 +11,7 @@ const catInfo = document.querySelector('.cat-info');
 
 async function populateBreedsSelect() {
   try {
+    showLoader();
     const breeds = await fetchBreeds();
     breedSelect.innerHTML = breeds.map(breed => `<option value="${breed.id}">${breed.name}</option>`).join('');
     breedSelect.removeAttribute('hidden');
@@ -18,16 +19,26 @@ async function populateBreedsSelect() {
       select: '.breed-select',
       showContent: "down",
     });
-    loader.setAttribute('hidden', '');
+    hideLoader();
   } catch (error) {
     loader.setAttribute('hidden', '');
     showError(error.message);
   }
 }
 
+function showLoader() {
+  loader.removeAttribute('hidden');
+}
+
+function hideLoader() {
+  loader.setAttribute('hidden', '');
+}
+
 function showError(errorMessage) {
   error.textContent = errorMessage;
   error.removeAttribute('hidden');
+  hideLoader();
+  Notiflix.Notify.failure(errorMessage)
 }
 
 function hideError() {
@@ -36,6 +47,7 @@ function hideError() {
 
 async function displayCatInfo(breedId) {
   try {
+    showLoader();
     const catData = await fetchCatByBreed(breedId);
     const { url, breeds } = catData;
     const breedName = breeds[0].name;
@@ -49,7 +61,8 @@ async function displayCatInfo(breedId) {
       <p><strong>Temperament:</strong> ${temperament}</p>
     `;
     catInfo.removeAttribute('hidden');
-
+    hideLoader();
+    
     Notiflix.Notify.success(`Information about ${breedName} found!`);
   } 
   catch (error) {

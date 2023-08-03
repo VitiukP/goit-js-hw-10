@@ -1,5 +1,3 @@
-// cat-api.js
-
 import axios from "axios";
 
 axios.defaults.headers.common["x-api-key"] =
@@ -9,7 +7,7 @@ export function fetchBreeds() {
   return axios.get("https://api.thecatapi.com/v1/breeds")
     .then((response) => response.data)
     .catch((error) => {
-      throw new Error("Failed to fetch breeds.");
+      throw new Error("Oops! Something went wrong! Try reloading the page!");
     });
 }
 
